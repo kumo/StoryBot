@@ -69,7 +69,7 @@ def choose_story(update, context):
     markup = ReplyKeyboardMarkup(actions_keyboard, one_time_keyboard=True)
 
     # Show the description with the list of buttons
-    update.message.reply_text(reply_text, reply_markup=markup)
+    update.message.reply_text(reply_text, reply_markup=markup, parse_mode='Markdown')
 
     # Change the state so that we can interact with the story
     return CHOOSING_ACTION
@@ -105,7 +105,7 @@ def choose_action(update, context):
         markup = ReplyKeyboardMarkup(actions_keyboard, one_time_keyboard=True)
 
         # Show the description with the list of buttons
-        update.message.reply_text(reply_text, reply_markup=markup)
+        update.message.reply_text(reply_text, reply_markup=markup, parse_mode='Markdown')
 
         # Keep the state so that we can interact with the story
         return CHOOSING_ACTION
@@ -117,7 +117,7 @@ def choose_action(update, context):
         markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
         # Show the description with the done button
-        update.message.reply_text(reply_text, reply_markup=markup)
+        update.message.reply_text(reply_text, reply_markup=markup, parse_mode='Markdown')
 
         if 'ending' in current_page:
             context.user_data['ending'] = current_page['ending']
