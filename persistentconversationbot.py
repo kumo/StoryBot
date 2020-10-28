@@ -33,11 +33,11 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
+CHOOSING, TYPING_REPLY = range(2)
 
 reply_keyboard = [
     ['Age', 'Favourite colour'],
-    ['Number of siblings', 'Something else...'],
+    ['Number of siblings'],
     ['Done'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -84,14 +84,6 @@ def regular_choice(update, context):
     return TYPING_REPLY
 
 
-def custom_choice(update, context):
-    update.message.reply_text(
-        'Alright, please send me the category first, ' 'for example "Most impressive skill"'
-    )
-
-    return TYPING_CHOICE
-
-
 def received_information(update, context):
     text = update.message.text
     category = context.user_data['choice']
@@ -135,19 +127,13 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
+    # Add conversation handler with the states CHOOSING and TYPING_REPLY
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
             CHOOSING: [
                 MessageHandler(
                     Filters.regex('^(Age|Favourite colour|Number of siblings)$'), regular_choice
-                ),
-                MessageHandler(Filters.regex('^Something else...$'), custom_choice),
-            ],
-            TYPING_CHOICE: [
-                MessageHandler(
-                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), regular_choice
                 )
             ],
             TYPING_REPLY: [
