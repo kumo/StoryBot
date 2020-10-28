@@ -35,17 +35,13 @@ logger = logging.getLogger(__name__)
 
 CHOOSING_STORY, CHOOSING_ACTION = range(2)
 
-story = {'title': 'The house that killed Sam', 'start': {'title': 'The House', 'description': 'You are in a house. A familiar house, but it is dark.', 'options': [{'text': 'Turn on the light', 'page': 'death-by-light'}, {'text': "Don't turn on the light", 'page': 'death-by-darkness'}, {'text': 'Offer food', 'page': 'offer-food'}]}, 'death-by-light': {'description': 'You turn on the light, and seen the mighty Nuala.  She casts her gaze upon you, freezing your blood, and then, with a whisk of her tail, chops off your head.', 'death': True}, 'death-by-darkness': {'description': 'You leave the light off; better safe than sorry.  A rumbling sound starts to form next to you; A rhythmic purring sound, that grows louder and louder.  You begin to shake, your brain begins to shake, and your life begins to shake, until it breaks.', 'death': True}, 'offer-food': {'description': 'You stumble around in the dark, reaching for a tin of cat food. You find one and pull it open, cutting yourself in the process. As you search for a bowl you hear a licking sound, surely cleaning up your blood drops, ever getting closer, ever getting closer. With great haste you prepare the food and place it on the floor. The licking turns to crunching, before fading away. Leaving you, alone in the house, in the dark.', 'end': True}}
-
+stories = {}
 
 def start(update, context):
     reply_text = "Hi! My name is the story teller."
 
-    reply_keyboard = [
-        ['The House that Killed Sam'],
-        ['Done'],
-    ]
-    story_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    story_keyboard = [[story] for story in stories]
+    story_markup = ReplyKeyboardMarkup(story_keyboard, one_time_keyboard=True)
 
     update.message.reply_text(reply_text, reply_markup=story_markup)
 
@@ -62,7 +58,7 @@ def choose_story(update, context):
     
     update.message.reply_text("You have chosen {}.".format(text))
 
-    current_page = story['start']
+    current_page = stories[text]['start']
 
     # Get the description from the page
     reply_text = current_page['description']
@@ -83,6 +79,7 @@ def choose_action(update, context):
     text = update.message.text
     
     # What page did we come from?
+    story = stories[context.user_data.get('story')]
     previous_page = story[context.user_data.get('page')]
 
     current_page_name = ""
@@ -122,7 +119,8 @@ def choose_action(update, context):
         # Show the description with the done button
         update.message.reply_text(reply_text, reply_markup=markup)
 
-        # TODO: show something that shows whether the player won or lost
+        if 'ending' in current_page:
+            context.user_data['ending'] = current_page['ending']
 
         # The player should go back to the start
         return CHOOSING_STORY
@@ -134,13 +132,38 @@ def done(update, context):
     if 'story' in context.user_data:
         del context.user_data['story']
 
-    update.message.reply_text(
-        "Until next time!"
-    )
+    if 'ending' in context.user_data:
+        if context.user_data['ending'] == 'won':
+            update.message.reply_text("Well done! Until next time!")
+
+        if context.user_data['ending'] == 'death':
+            update.message.reply_text("Better luck next time I hope!")
+
+        del context.user_data['ending']
+    else:
+        update.message.reply_text('See you soon.')
+
     return ConversationHandler.END
 
 
+# We need to be able to create folders and list contents of folders
+from os import listdir
+from os.path import isfile, join
+
+import toml
+
 def main():
+    # Look for stories
+    story_files = [f for f in listdir("Stories") if isfile(join("Stories", f))]
+
+    assert(len(story_files) > 0)
+
+    for story_file in story_files:
+        story = toml.load(join("Stories", story_file))
+
+        stories[story['title']] = story
+        # stories.append(story)
+
     # Create the Updater and pass it your bot's token.
     pp = PicklePersistence(filename='conversationbot')
     updater = Updater("***REMOVED***", persistence=pp, use_context=True)
