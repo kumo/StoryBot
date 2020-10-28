@@ -33,88 +33,109 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, TYPING_REPLY = range(2)
+CHOOSING_STORY, CHOOSING_ACTION = range(2)
 
-reply_keyboard = [
-    ['Age', 'Favourite colour'],
-    ['Number of siblings'],
-    ['Done'],
-]
-markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-
-
-def facts_to_str(user_data):
-    facts = list()
-
-    for key, value in user_data.items():
-        facts.append('{} - {}'.format(key, value))
-
-    return "\n".join(facts).join(['\n', '\n'])
+story = {'title': 'The house that killed Sam', 'start': {'title': 'The House', 'description': 'You are in a house. A familiar house, but it is dark.', 'options': [{'text': 'Turn on the light', 'page': 'death-by-light'}, {'text': "Don't turn on the light", 'page': 'death-by-darkness'}, {'text': 'Offer food', 'page': 'offer-food'}]}, 'death-by-light': {'description': 'You turn on the light, and seen the mighty Nuala.  She casts her gaze upon you, freezing your blood, and then, with a whisk of her tail, chops off your head.', 'death': True}, 'death-by-darkness': {'description': 'You leave the light off; better safe than sorry.  A rumbling sound starts to form next to you; A rhythmic purring sound, that grows louder and louder.  You begin to shake, your brain begins to shake, and your life begins to shake, until it breaks.', 'death': True}, 'offer-food': {'description': 'You stumble around in the dark, reaching for a tin of cat food. You find one and pull it open, cutting yourself in the process. As you search for a bowl you hear a licking sound, surely cleaning up your blood drops, ever getting closer, ever getting closer. With great haste you prepare the food and place it on the floor. The licking turns to crunching, before fading away. Leaving you, alone in the house, in the dark.', 'end': True}}
 
 
 def start(update, context):
-    reply_text = "Hi! My name is Doctor Botter."
-    if context.user_data:
-        reply_text += (
-            " You already told me your {}. Why don't you tell me something more "
-            "about yourself? Or change anything I "
-            "already know.".format(", ".join(context.user_data.keys()))
-        )
-    else:
-        reply_text += (
-            " I will hold a more complex conversation with you. Why don't you tell me "
-            "something about yourself?"
-        )
+    reply_text = "Hi! My name is the story teller."
+
+    reply_keyboard = [
+        ['The House that Killed Sam'],
+        ['Done'],
+    ]
+    story_markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+    update.message.reply_text(reply_text, reply_markup=story_markup)
+
+    return CHOOSING_STORY
+
+
+def choose_story(update, context):
+    text = update.message.text
+    
+    # Keep track of the story
+    context.user_data['story'] = text
+    # And begin the story from the start
+    context.user_data['page'] = 'start'
+    
+    update.message.reply_text("You have chosen {}.".format(text))
+
+    current_page = story['start']
+
+    # Get the description from the page
+    reply_text = current_page['description']
+
+    # Get the list of options from the page.
+    # We only want to show the text.
+    actions_keyboard = [[action['text']] for action in current_page['options']]
+    markup = ReplyKeyboardMarkup(actions_keyboard, one_time_keyboard=True)
+
+    # Show the description with the list of buttons
     update.message.reply_text(reply_text, reply_markup=markup)
 
-    return CHOOSING
+    # Change the state so that we can interact with the story
+    return CHOOSING_ACTION
 
 
-def regular_choice(update, context):
-    text = update.message.text.lower()
-    context.user_data['choice'] = text
-    if context.user_data.get(text):
-        reply_text = 'Your {}, I already know the following ' 'about that: {}'.format(
-            text, context.user_data[text]
-        )
-    else:
-        reply_text = 'Your {}? Yes, I would love to hear about that!'.format(text)
-    update.message.reply_text(reply_text)
-
-    return TYPING_REPLY
-
-
-def received_information(update, context):
+def choose_action(update, context):
     text = update.message.text
-    category = context.user_data['choice']
-    context.user_data[category] = text.lower()
-    del context.user_data['choice']
+    
+    # What page did we come from?
+    previous_page = story[context.user_data.get('page')]
 
-    update.message.reply_text(
-        "Neat! Just so you know, this is what you already told me:"
-        "{}"
-        "You can tell me more, or change your opinion on "
-        "something.".format(facts_to_str(context.user_data)),
-        reply_markup=markup,
-    )
+    current_page_name = ""
+    for option in previous_page['options']:
+        if option['text'] == text:
+            current_page_name = option['page']
+            break;
 
-    return CHOOSING
+    # Store the current page 
+    context.user_data['page'] == current_page_name
+    
+    # Get the current page from the story
+    current_page = story[current_page_name]
 
+    # Get the description from the page
+    reply_text = current_page['description']
 
-def show_data(update, context):
-    update.message.reply_text(
-        "This is what you already told me:" "{}".format(facts_to_str(context.user_data))
-    )
+    # Does the page have any options?
+    if 'option' in current_page.keys():
+        # Get the list of options from the page.
+        # We only want to show the text.
+        actions_keyboard = [[action['text']] for action in current_page['options']]
+        markup = ReplyKeyboardMarkup(actions_keyboard, one_time_keyboard=True)
+
+        # Show the description with the list of buttons
+        update.message.reply_text(reply_text, reply_markup=markup)
+
+        # Keep the state so that we can interact with the story
+        return CHOOSING_ACTION
+    else:
+        # Create a list of buttons with only a 'Done' button
+        reply_keyboard = [
+            ['Done'],
+        ]
+        markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+
+        # Show the description with the done button
+        update.message.reply_text(reply_text, reply_markup=markup)
+
+        # TODO: show something that shows whether the player won or lost
+
+        # The player should go back to the start
+        return CHOOSING_STORY
 
 
 def done(update, context):
-    if 'choice' in context.user_data:
-        del context.user_data['choice']
+    if 'page' in context.user_data:
+        del context.user_data['page']
+    if 'story' in context.user_data:
+        del context.user_data['story']
 
     update.message.reply_text(
-        "I learned these facts about you:"
-        "{}"
-        "Until next time!".format(facts_to_str(context.user_data))
+        "Until next time!"
     )
     return ConversationHandler.END
 
@@ -131,15 +152,15 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            CHOOSING: [
+            CHOOSING_STORY: [
                 MessageHandler(
-                    Filters.regex('^(Age|Favourite colour|Number of siblings)$'), regular_choice
+                    Filters.text & ~(Filters.command | Filters.regex('^Done$')), choose_story,
                 )
             ],
-            TYPING_REPLY: [
+            CHOOSING_ACTION: [
                 MessageHandler(
                     Filters.text & ~(Filters.command | Filters.regex('^Done$')),
-                    received_information,
+                    choose_action,
                 )
             ],
         },
@@ -149,9 +170,6 @@ def main():
     )
 
     dp.add_handler(conv_handler)
-
-    show_data_handler = CommandHandler('show_data', show_data)
-    dp.add_handler(show_data_handler)
 
     # Start the Bot
     updater.start_polling()
