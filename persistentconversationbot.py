@@ -98,7 +98,7 @@ def choose_action(update, context):
     reply_text = current_page['description']
 
     # Does the page have any options?
-    if 'option' in current_page.keys():
+    if 'options' in current_page.keys():
         # Get the list of options from the page.
         # We only want to show the text.
         actions_keyboard = [[action['text']] for action in current_page['options']]
