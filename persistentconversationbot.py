@@ -89,7 +89,7 @@ def choose_action(update, context):
             break;
 
     # Store the current page 
-    context.user_data['page'] == current_page_name
+    context.user_data['page'] = current_page_name
     
     # Get the current page from the story
     current_page = story[current_page_name]
