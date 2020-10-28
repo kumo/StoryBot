@@ -1,0 +1,29 @@
+title = "The house that killed Sam"
+
+[start]
+title = "The House"
+description = "You are in a house. A familiar house, but it is dark."
+
+[[start.options]]
+text = "Turn on the light"
+page = "death-by-light"
+
+[[start.options]]
+text = "Don't turn on the light"
+page = "death-by-darkness"
+
+[[start.options]]
+text = "Offer food"
+page = "offer-food"
+
+[death-by-light]
+description = "You turn on the light, and seen the mighty Nuala.  She casts her gaze upon you, freezing your blood, and then, with a whisk of her tail, chops off your head."
+death = true
+
+[death-by-darkness]
+description = "You leave the light off; better safe than sorry.  A rumbling sound starts to form next to you; A rhythmic purring sound, that grows louder and louder.  You begin to shake, your brain begins to shake, and your life begins to shake, until it breaks."
+death = true
+
+[offer-food]
+description = "You stumble around in the dark, reaching for a tin of cat food. You find one and pull it open, cutting yourself in the process. As you search for a bowl you hear a licking sound, surely cleaning up your blood drops, ever getting closer, ever getting closer. With great haste you prepare the food and place it on the floor. The licking turns to crunching, before fading away. Leaving you, alone in the house, in the dark."
+end = true
