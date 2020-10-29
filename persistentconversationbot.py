@@ -21,7 +21,6 @@ from telegram.ext import (
     MessageHandler,
     Filters,
     ConversationHandler,
-    PicklePersistence,
 )
 
 import logging
@@ -165,8 +164,7 @@ def main():
         # stories.append(story)
 
     # Create the Updater and pass it your bot's token.
-    pp = PicklePersistence(filename='conversationbot')
-    updater = Updater("***REMOVED***", persistence=pp, use_context=True)
+    updater = Updater("***REMOVED***", use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -189,7 +187,6 @@ def main():
         },
         fallbacks=[MessageHandler(Filters.regex('^Done$'), done)],
         name="my_conversation",
-        persistent=True,
     )
 
     dp.add_handler(conv_handler)
