@@ -151,7 +151,7 @@ from os.path import isfile, join
 
 import toml
 
-def main():
+def load_stories():
     # Look for stories
     story_files = [f for f in listdir("Stories") if isfile(join("Stories", f))]
 
@@ -161,8 +161,9 @@ def main():
         story = toml.load(join("Stories", story_file))
 
         stories[story['title']] = story
-        # stories.append(story)
 
+
+def main():
     # Create the Updater and pass it your bot's token.
     updater = Updater("***REMOVED***", use_context=True)
 
@@ -190,6 +191,9 @@ def main():
     )
 
     dp.add_handler(conv_handler)
+
+    # Load the stories
+    load_stories()
 
     # Start the Bot
     updater.start_polling()
