@@ -55,7 +55,6 @@ def start(update, context):
 
 
 def get_page_name_from_choice(page, link):
-    page_name = ""
     for option in page['options']:
         if option['text'] == link:
             page_name = option['page']
