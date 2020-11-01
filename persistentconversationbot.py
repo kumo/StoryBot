@@ -97,44 +97,44 @@ def start_new_story(update, context, story_name):
 
 
 def get_next_page(update, context, page_link_text):
-	story = stories[context.user_data['story']]
-	
-	# If the page is missing, just get the 'start' page
-	if 'page' not in context.user_data:
-		# Get the page and remember it
-		page = story['start']
-		context.user_data['page'] = 'start'
-    	
-		return page
-	
-	previous_page_name = context.user_data['page']
-	previous_page = story[previous_page_name]	
-	
-	for option in previous_page['options']:
-		if option['text'] == page_link_text:
-			page_name = option['page']
-			break;
+    story = stories[context.user_data['story']]
 
-	# Get the page and remember it
-	page = story[page_name]
-	context.user_data['page'] = page_name
+    # If the page is missing, just get the 'start' page
+    if 'page' not in context.user_data:
+        # Get the page and remember it
+        page = story['start']
+        context.user_data['page'] = 'start'
+
+        return page
+
+    previous_page_name = context.user_data['page']
+    previous_page = story[previous_page_name]
+
+    for option in previous_page['options']:
+        if option['text'] == page_link_text:
+            page_name = option['page']
+            break;
+
+    # Get the page and remember it
+    page = story[page_name]
+    context.user_data['page'] = page_name
     
-	return page
+    return page
 
 
 def get_page_keyboard(page):
-	# Does the page have any options?
-	if 'options' in page.keys():
-		# Get the list of options from the page.
-		# We only want to show the text.
-		actions_keyboard = [[action['text']] for action in page['options']]
-	else:
-		# Create a list of buttons with only a 'Done' button
-	    actions_keyboard = [
-    	    ['Done'],
-	    ]
+    # Does the page have any options?
+    if 'options' in page.keys():
+        # Get the list of options from the page.
+        # We only want to show the text.
+        actions_keyboard = [[action['text']] for action in page['options']]
+    else:
+        # Create a list of buttons with only a 'Done' button
+        actions_keyboard = [
+            ['Done'],
+        ]
 
-	return actions_keyboard
+    return actions_keyboard
 
 
 def parse_message(update, context):
@@ -142,22 +142,22 @@ def parse_message(update, context):
 
     # If needed, start a new story
     if 'story' not in context.user_data:
-    	start_new_story(update, context, text)
+        start_new_story(update, context, text)
 
     page = get_next_page(update, context, text)
-	
+
     # Get the description from the page
     description_text = page['description']
 
     actions_keyboard = get_page_keyboard(page)
     markup = ReplyKeyboardMarkup(actions_keyboard, one_time_keyboard=True)
-	 
-	# Show the description with the list of buttons
+
+    # Show the description with the list of buttons
     update.message.reply_text(
-    	description_text,
-      	reply_markup=markup,
-      	parse_mode='Markdown')
-      	
+        description_text,
+        reply_markup=markup,
+        parse_mode='Markdown')
+
 
 # We need to be able to create folders and list contents of folders
 from os import listdir
