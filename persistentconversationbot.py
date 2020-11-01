@@ -37,6 +37,7 @@ stories = {}
 def start(update, context):
     reply_text = "Hi! My name is the story teller."
 
+    # Show the user the list of available stories
     story_keyboard = [[story] for story in stories]
     story_markup = ReplyKeyboardMarkup(story_keyboard, one_time_keyboard=True)
 
@@ -50,16 +51,6 @@ def start(update, context):
         del context.user_data['page']
 
 
-def get_page_name_from_choice(page, link):
-    for option in page['options']:
-        if option['text'] == link:
-            page_name = option['page']
-            break;
-
-    assert(page_name != "")
-    return page_name
-
-
 def end_story(update, context):
     story = stories[context.user_data['story']]
     previous_page_name = context.user_data['page']
@@ -70,13 +61,6 @@ def end_story(update, context):
 
     if previous_page['ending'] == 'death':
         ending_message = "Better luck next time, I hope!"
-
-    # Create a list of buttons with only a 'Done' button
-    #reply_keyboard = [
-    #    ['Done'],
-    #]
-
-    #markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
 
     # Show the description with the done button
     # update.message.reply_text(ending_message, reply_markup=markup, parse_mode='Markdown')
