@@ -14,6 +14,9 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 
+import os
+from os.path import dirname, join
+
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import (
     Updater,
@@ -31,6 +34,8 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+from dotenv import load_dotenv
 
 stories = {}
 
@@ -162,8 +167,14 @@ def load_stories():
 
 
 def main():
+    # Get variables from the environment
+    dotenv_path = join(dirname(__file__), '.env')
+    load_dotenv(dotenv_path)
+    
+    BOT_TOKEN = os.getenv('BOT_TOKEN')
+
     # Create the Updater and pass it your bot's token.
-    updater = Updater("***REMOVED***", use_context=True)
+    updater = Updater(BOT_TOKEN, use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
